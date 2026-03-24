@@ -3,7 +3,7 @@
 ## Descrierea Proiectului
 **SmartSpotter AI** este o aplicație web pentru fitness care te ajută să îți urmărești antrenamentele de la sală și alimentația zilnică. Partea specială a proiectului este integrarea a doi agenți de inteligență artificială (care rulează local). Primul agent funcționează ca un antrenor personal care îți generează antrenamente pe baza a ceea ce îi ceri, iar al doilea funcționează ca un nutriționist care îți calculează automat caloriile și macronutrienții direct din textul scris de tine.
 
-## E
+## Echipa
 * **Avădanei Radu-Cristian** (252)
 * **Avădanei Rareș** (252)
 * **Bretfelean Rareș-Cosmin** (344)
