@@ -21,6 +21,6 @@ Mai jos este lista funcționalităților planificate pentru prima versiune a apl
 8. **Urmărire calorii:** Ca utilizator, vreau să văd cât la sută din obiectivul meu zilnic de calorii și proteine a fost atins, pe baza estimărilor făcute de AI, pentru a ști cât mai pot mânca azi.
 9. **Grafic greutate:** Ca utilizator, vreau să pot actualiza greutatea mea curentă și să o văd pe un grafic, pentru a-mi urmări vizual progresul în timp.
 10. **Editare date:** Ca utilizator, vreau să pot edita sau șterge o masă sau un antrenament introdus din greșeală, pentru a menține acuratețea datelor din jurnalul meu.
-11. **Urmărire Hidratare (Nou):** Ca utilizator, vreau să pot înregistra rapid cantitatea de apă băută zilnic, pentru a mă asigura că mă mențin hidratat corespunzător.
-12. **Sistem de motivare (Nou):** Ca utilizator, vreau să primesc insigne virtuale (badges) când ating anumite recorduri personale (ex: 3 zile la rând de antrenament), pentru a rămâne motivat.
+11. **Urmărire Hidratare:** Ca utilizator, vreau să pot înregistra rapid cantitatea de apă băută zilnic, pentru a mă asigura că mă mențin hidratat corespunzător.
+12. **Sistem de motivare:** Ca utilizator, vreau să primesc insigne virtuale (badges) când ating anumite recorduri personale (ex: 3 zile la rând de antrenament), pentru a rămâne motivat.
 
