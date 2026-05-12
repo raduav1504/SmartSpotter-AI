@@ -32,7 +32,7 @@ Aplicație de fitness cu agenți AI locali (Ollama/Llama3).
 - Tailwind CSS + shadcn/ui
 
 ## Linkuri
-- Backlog: [GitHub Projects](https://github.com/raduav1504/SmartSpotter-AI/projects)
+- Backlog: [GitHub Projects](https://github.com/users/raduav1504/projects/1)
 - User Stories: [docs/user-stories.md](docs/user-stories.md)
 - Arhitectură: [docs/architecture.md](docs/architecture.md)
 - Raport AI: [AI_REPORT.md](AI_REPORT.md)
