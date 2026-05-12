@@ -1,0 +1,7 @@
+project_id = "vzudjmvnddrewmmngpmq"
+
+[functions.macro-estimator]
+verify_jwt = false
+
+[functions.coach-agent]
+verify_jwt = false
