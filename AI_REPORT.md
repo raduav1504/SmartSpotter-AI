@@ -15,7 +15,7 @@
 - Debugging și code review
 - Generare documentație
 
-## 4. ChatGPT
+## 4. Gemini 2.5
 - Formulare user stories
 - Generare criterii de evaluare pentru agenți
 
