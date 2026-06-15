@@ -22,11 +22,8 @@ Aplicatie de fitness cu agenti AI (Gemini 2.5 Flash).
 
 1. Cloneaza repo-ul: `git clone https://github.com/raduav1504/SmartSpotter-AI`
 2. Instaleaza dependentele: `bun install`
-3. Copiaza `.env.example` in `.env` si completeaza valorile:
-   - `VITE_SUPABASE_URL` si `VITE_SUPABASE_PUBLISHABLE_KEY` din Supabase Dashboard
-   - `VITE_GEMINI_API_KEY` din https://aistudio.google.com/apikey (gratuit)
-4. Porneste aplicatia: `bun run dev`
-5. Mergi la: http://localhost:8080
+3. Porneste aplicatia: `bun run dev`
+4. Mergi la: http://localhost:8080
 
 ## Tehnologii folosite
 
