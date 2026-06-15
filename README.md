@@ -41,4 +41,5 @@ Aplicatie de fitness cu agenti AI (Gemini 2.5 Flash).
 - User Stories: [docs/user-stories.md](docs/user-stories.md)
 - Arhitectura: [docs/architecture.md](docs/architecture.md)
 - Raport AI: [AI_REPORT.md](AI_REPORT.md)
+- AI evals: [docs/ai-evals.md](docs/ai-evals.md)
 - Demo video: [YouTube](_adauga_link_dupa_inregistrare_)
