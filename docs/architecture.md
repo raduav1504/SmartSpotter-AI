@@ -13,13 +13,12 @@ graph TB
         Nutrition["/nutrition — Agent Macro"]
         Workouts[Jurnal Antrenamente]
         Progress[Grafic Greutate]
-        Hydration[Hidratare]
         Badges[Badges]
     end
 
-    subgraph LocalAI["AI Local (Ollama)"]
-        Llama3A["Llama3 — Antrenor"]
-        Llama3B["Llama3 — Macro"]
+    subgraph GeminiCloud["AI Cloud (Google Gemini 2.5 Flash)"]
+        GeminiA["Gemini — Agent Antrenor"]
+        GeminiB["Gemini — Agent Macro"]
     end
 
     subgraph Supabase["Supabase (Cloud)"]
@@ -28,22 +27,24 @@ graph TB
     end
 
     User --> Frontend
-    Coach -->|"prompt text"| Llama3A
-    Llama3A -->|"plan JSON"| Coach
-    Nutrition -->|"descriere masă"| Llama3B
-    Llama3B -->|"calorii + macro JSON"| Nutrition
+    Coach -->|"prompt + profil utilizator"| GeminiA
+    GeminiA -->|"plan JSON"| Coach
+    Nutrition -->|"descriere masa"| GeminiB
+    GeminiB -->|"calorii + macro JSON"| Nutrition
     Frontend <-->|"CRUD"| DB
     Frontend <-->|"login"| AuthSvc
 ```
 
 ## Flow Agent Antrenor
-1. Utilizatorul descrie contextul în `/coach`
-2. Frontend POST → `localhost:11434/api/generate`
-3. Llama3 răspunde cu JSON: `{title, exercises[], notes}`
-4. Utilizatorul salvează planul → Supabase
+1. Utilizatorul descrie contextul in `/coach`
+2. Frontend POST → `generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash`
+3. Promptul include profilul complet al utilizatorului (varsta, greutate, obiectiv, nivel activitate)
+4. Gemini raspunde cu JSON: `{title, duration_min, notes, exercises[]}`
+5. Utilizatorul salveaza planul → Supabase
 
-## Flow Agent Nutriție
-1. Utilizatorul scrie ce a mâncat în `/nutrition`
-2. Frontend POST → `localhost:11434/api/generate`
-3. Llama3 extrage: `{calories, protein_g, carbs_g, fat_g}`
-4. Datele se salvează → apar în dashboard
+## Flow Agent Nutritie
+1. Utilizatorul scrie ce a mancat in `/nutrition`
+2. Frontend POST → `generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash`
+3. Promptul cere respectarea formulei Atwater: calories = protein_g*4 + carbs_g*4 + fat_g*9
+4. Gemini extrage: `{calories, protein_g, carbs_g, fat_g}`
+5. Datele se salveaza → apar in dashboard
