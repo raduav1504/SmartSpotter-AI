@@ -13,9 +13,34 @@ import { format } from "date-fns";
 import { checkMealBadge } from "@/lib/badges";
 
 export const Route = createFileRoute("/_authenticated/nutrition")({
-  head: () => ({ meta: [{ title: "Nutriție AI – SmartSpotter AI" }] }),
+  head: () => ({ meta: [{ title: "Nutritie AI – SmartSpotter AI" }] }),
   component: NutritionPage,
 });
+
+const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
+
+async function callGemini(prompt: string): Promise<string> {
+  const response = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: prompt }] }],
+        generationConfig: {
+          responseMimeType: "application/json",
+          temperature: 0.0,
+        },
+      }),
+    }
+  );
+  if (!response.ok) {
+    const err = await response.json().catch(() => ({}));
+    throw new Error(err?.error?.message || `Eroare Gemini: ${response.status}`);
+  }
+  const data = await response.json();
+  return data.candidates[0].content.parts[0].text;
+}
 
 function NutritionPage() {
   const { user } = useAuth();
@@ -43,38 +68,21 @@ function NutritionPage() {
     },
   });
 
-  // AICI ESTE MAGIA: Am legat interfata de OLLAMA LOCAL!
   const estimate = useMutation({
     mutationFn: async (raw: string) => {
-      const systemPrompt = `Ești un nutriționist expert. Calculează matematic valorile nutriționale.
-      Răspunde STRICT și DOAR cu un obiect JSON valid. 
-      Folosește EXACT aceste 4 chei: "calories", "protein_g", "carbs_g", "fat_g". 
-      Valorile trebuie să fie numere. Aliment: `;
+      const prompt = `Esti un nutritionist expert. Calculeaza matematic valorile nutritionale pentru alimentele descrise.
+      Raspunde STRICT si DOAR cu un obiect JSON valid.
+      Foloseste EXACT aceste 4 chei: "calories", "protein_g", "carbs_g", "fat_g".
+      Valorile trebuie sa fie numere intregi sau zecimale.
+      Aliment: ${raw}`;
 
-      const response = await fetch('http://localhost:11434/api/generate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          model: 'llama3', // Modelul nostru local!
-          prompt: systemPrompt + raw,
-          stream: false,
-          format: 'json',
-          options: { temperature: 0.0 }
-        })
-      });
-
-      if (!response.ok) throw new Error("Eroare la conectarea cu Ollama");
-      
-      const out = await response.json();
-      const result = JSON.parse(out.response);
-      
-      // Returnam in formatul pe care il vrea baza de date
+      const result = JSON.parse(await callGemini(prompt));
       return {
         calories: result.calories || 0,
         protein_g: result.protein_g || 0,
         carbs_g: result.carbs_g || 0,
         fat_g: result.fat_g || 0,
-        items: raw
+        items: raw,
       };
     },
     onSuccess: async (result) => {
@@ -88,7 +96,7 @@ function NutritionPage() {
           fat_g: result.fat_g,
           items: result.items,
         }).eq("id", editingId);
-        toast.success("Masă actualizată");
+        toast.success("Masa actualizata");
       } else {
         await supabase.from("meals").insert({
           user_id: user.id,
@@ -113,7 +121,7 @@ function NutritionPage() {
     await supabase.from("meals").delete().eq("id", id);
     qc.invalidateQueries({ queryKey: ["meals"] });
     qc.invalidateQueries({ queryKey: ["dashboard"] });
-    toast.success("Șters");
+    toast.success("Sters");
   };
 
   const handleEdit = (m: any) => {
@@ -131,8 +139,8 @@ function NutritionPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold">Nutriție</h1>
-        <p className="text-muted-foreground">Scrie ce ai mâncat — AI-ul local (Llama3) calculează caloriile.</p>
+        <h1 className="text-3xl font-bold">Nutritie</h1>
+        <p className="text-muted-foreground">Scrie ce ai mancat — Gemini AI calculeaza caloriile si macronutrientii.</p>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2">
@@ -148,7 +156,7 @@ function NutritionPage() {
           <CardContent>
             <div className="text-2xl font-bold">{Math.round(totalProt)}g / {protTarget}g</div>
             <Progress value={Math.min(100, (totalProt / protTarget) * 100)} className="mt-2" />
-            <p className="mt-2 text-xs text-muted-foreground">Carbo: {Math.round(totalCarbs)}g · Grăsimi: {Math.round(totalFat)}g</p>
+            <p className="mt-2 text-xs text-muted-foreground">Carbo: {Math.round(totalCarbs)}g · Grasimi: {Math.round(totalFat)}g</p>
           </CardContent>
         </Card>
       </div>
@@ -160,16 +168,16 @@ function NutritionPage() {
         <CardContent className="space-y-3">
           <Textarea
             rows={3}
-            placeholder="ex: o șaorma mică și un măr"
+            placeholder="ex: o saorma mica si un mar"
             value={text}
             onChange={(e) => setText(e.target.value)}
             maxLength={500}
           />
           <div className="flex gap-2">
             <Button onClick={() => text.trim() && estimate.mutate(text)} disabled={estimate.isPending || !text.trim()}>
-              {estimate.isPending ? "Llama3 Analizează..." : editingId ? "Reestimează" : "Estimează & salvează"}
+              {estimate.isPending ? "Gemini analizeaza..." : editingId ? "Reestimeaza" : "Estimeaza & salveaza"}
             </Button>
-            {editingId && <Button variant="ghost" onClick={() => { setEditingId(null); setText(""); }}>Anulează</Button>}
+            {editingId && <Button variant="ghost" onClick={() => { setEditingId(null); setText(""); }}>Anuleaza</Button>}
           </div>
         </CardContent>
       </Card>
@@ -177,7 +185,7 @@ function NutritionPage() {
       <div className="space-y-3">
         <h2 className="text-xl font-semibold">Mese azi</h2>
         {!meals || meals.length === 0 ? (
-          <p className="text-sm text-muted-foreground">Nicio masă încă.</p>
+          <p className="text-sm text-muted-foreground">Nicio masa inca.</p>
         ) : (
           meals.map((m) => (
             <Card key={m.id}>
