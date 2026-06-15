@@ -22,6 +22,31 @@ type Plan = {
   exercises: { name: string; sets: number; reps: number; weight_kg: number; rest_sec?: number; tip?: string }[];
 };
 
+const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
+
+async function callGemini(prompt: string): Promise<string> {
+  const response = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: prompt }] }],
+        generationConfig: {
+          responseMimeType: "application/json",
+          temperature: 0.7,
+        },
+      }),
+    }
+  );
+  if (!response.ok) {
+    const err = await response.json().catch(() => ({}));
+    throw new Error(err?.error?.message || `Eroare Gemini: ${response.status}`);
+  }
+  const data = await response.json();
+  return data.candidates[0].content.parts[0].text;
+}
+
 function CoachPage() {
   const { user } = useAuth();
   const qc = useQueryClient();
@@ -36,45 +61,40 @@ function CoachPage() {
 
   const generate = useMutation({
     mutationFn: async (ctx: string) => {
-      const systemPrompt = `Ești un antrenor personal expert. Generează un plan de antrenament bazat pe cererea utilizatorului.
-      Răspunde STRICT și DOAR cu un obiect JSON valid, care să respecte EXACT următoarea structură:
-      {
-        "title": "Nume scurt antrenament",
-        "duration_min": 45,
-        "notes": "Un scurt sfat general sau de încălzire",
-        "exercises": [
-          { "name": "Nume exercițiu", "sets": 3, "reps": 12, "weight_kg": 20, "rest_sec": 60, "tip": "sfat execuție" }
-        ]
-      }
-      Nu scrie niciun alt text în afară de JSON. Cererea utilizatorului: `;
+      const prompt = `Esti un antrenor personal expert. Genereaza un plan de antrenament PERSONALIZAT bazat pe profilul si cererea utilizatorului.
 
-      const response = await fetch('http://localhost:11434/api/generate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          model: 'llama3',
-          prompt: systemPrompt + ctx,
-          stream: false,
-          format: 'json',
-          options: { temperature: 0.7 }
-        })
-      });
+PROFILUL UTILIZATORULUI:
+- Varsta: ${profile?.age} ani
+- Greutate: ${profile?.weight_kg}kg
+- Inaltime: ${profile?.height_cm}cm
+- Sex: ${profile?.sex}
+- Obiectiv: ${profile?.goal === 'lose' ? 'slabire' : profile?.goal === 'gain' ? 'masa musculara' : 'mentinere'}
+- Nivel activitate: ${profile?.activity_level}
 
-      if (!response.ok) throw new Error(
-        response.status === 0 || !response.status
-          ? "Ollama nu rulează! Pornește cu: OLLAMA_ORIGINS=* ollama serve"
-          : "Eroare la conectarea cu Ollama"
-      );
+REGULI OBLIGATORII:
+1. Adapteaza greutatile sugerate la greutatea corporala a utilizatorului (ex: nu sugera 100kg la cineva de 60kg)
+2. Daca obiectivul e slabire: mai multe repetari, pauze scurte, exercitii compuse
+3. Daca obiectivul e masa musculara: greutati mai mari, pauze mai lungi, volum crescut
+4. Daca utilizatorul mentioneaza o leziune sau limitare, EVITA complet exercitiile care implica zona respectiva
+5. Raspunde STRICT si DOAR cu JSON valid
 
-      const out = await response.json();
-      return JSON.parse(out.response) as Plan;
+Format raspuns:
+{
+  "title": "Nume scurt antrenament",
+  "duration_min": numar,
+  "notes": "sfat personalizat bazat pe obiectivul utilizatorului",
+  "exercises": [
+    { "name": "Nume exercitiu", "sets": numar, "reps": numar, "weight_kg": numar, "rest_sec": numar, "tip": "sfat executie" }
+  ]
+}
+
+Cererea utilizatorului: ${ctx}`;
+
+      const raw = await callGemini(prompt);
+      return JSON.parse(raw) as Plan;
     },
     onSuccess: (p) => setPlan(p),
-    onError: (e: Error) => toast.error(
-      e.message.includes("Failed to fetch")
-        ? "Ollama nu rulează! Pornește cu: OLLAMA_ORIGINS=* ollama serve"
-        : e.message
-    ),
+    onError: (e: Error) => toast.error(e.message),
   });
 
   const saveAsWorkout = async () => {
@@ -89,7 +109,7 @@ function CoachPage() {
       name: e.name, sets: e.sets, reps: e.reps, weight_kg: e.weight_kg, position: i,
     }));
     await supabase.from("workout_exercises").insert(rows);
-    toast.success("Antrenament salvat în jurnal");
+    toast.success("Antrenament salvat in jurnal");
     qc.invalidateQueries({ queryKey: ["workouts"] });
     await checkWorkoutBadges(user.id);
   };
@@ -98,7 +118,7 @@ function CoachPage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold">Antrenor AI</h1>
-        <p className="text-muted-foreground">Descrie ce vrei să antrenezi, iar Llama 3 îți generează un plan local.</p>
+        <p className="text-muted-foreground">Descrie ce vrei sa antrenezi, iar Gemini iti genereaza un plan personalizat pe profilul tau.</p>
       </div>
 
       <Card>
@@ -108,7 +128,7 @@ function CoachPage() {
         <CardContent className="space-y-3">
           <Textarea
             rows={4}
-            placeholder='ex: "am doar 40 min, mă doare un genunchi, vreau să fac piept și triceps"'
+            placeholder='ex: "am doar 40 min, ma doare un genunchi, vreau sa fac piept si triceps"'
             value={context}
             onChange={(e) => setContext(e.target.value)}
             maxLength={1000}
@@ -117,7 +137,7 @@ function CoachPage() {
             onClick={() => context.trim() && generate.mutate(context)}
             disabled={generate.isPending || !context.trim()}
           >
-            {generate.isPending ? "Llama 3 concepe planul..." : "Generează antrenament"}
+            {generate.isPending ? "Gemini concepe planul..." : "Genereaza antrenament"}
           </Button>
         </CardContent>
       </Card>
@@ -129,7 +149,7 @@ function CoachPage() {
               <CardTitle>{plan.title}</CardTitle>
               <p className="text-sm text-muted-foreground">{plan.duration_min} minute</p>
             </div>
-            <Button onClick={saveAsWorkout} size="sm"><Save className="mr-2 h-4 w-4" /> Salvează</Button>
+            <Button onClick={saveAsWorkout} size="sm"><Save className="mr-2 h-4 w-4" /> Salveaza</Button>
           </CardHeader>
           <CardContent className="space-y-3">
             {plan.notes && (
@@ -141,7 +161,7 @@ function CoachPage() {
                   <div className="flex justify-between">
                     <span className="font-medium">{ex.name}</span>
                     <span className="text-sm text-muted-foreground">
-                      {ex.sets}×{ex.reps}{ex.weight_kg ? ` @ ${ex.weight_kg}kg` : ""}
+                      {ex.sets}x{ex.reps}{ex.weight_kg ? ` @ ${ex.weight_kg}kg` : ""}
                     </span>
                   </div>
                   {ex.tip && <p className="mt-1 text-xs text-muted-foreground">💡 {ex.tip}</p>}
