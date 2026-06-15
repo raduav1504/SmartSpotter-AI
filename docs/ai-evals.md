@@ -41,3 +41,4 @@
 Ambii agenti au trecut testele de baza. Principala limitare este ca Gemini poate halucina
 valori nutritionale pentru alimente foarte specifice sau retete complexe. Formula Atwater
 este respectata deoarece este inclusa explicit in prompt.
+
