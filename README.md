@@ -1,38 +1,44 @@
 # SmartSpotter AI
 
-Aplicație de fitness cu agenți AI locali (Ollama/Llama3).
+Aplicatie de fitness cu agenti AI (Gemini 2.5 Flash).
 
 ## Echipa
+
 - Radu Avadanei (252)
 - Rares Avadanei (252)
 - Bretfelean Rares (344)
 
-## Funcționalități
+## Functionalitati
+
 - Jurnal antrenamente + istoric
-- Jurnal alimentar cu estimare AI calorii și macros
-- Agent AI Antrenor Personal (Llama3 local)
-- Agent AI Estimator Macro (Llama3 local)
-- Grafic evoluție greutate
-- Urmărire hidratare
-- Sistem badges motivaționale
+- Jurnal alimentar cu estimare AI calorii si macros
+- Agent AI Antrenor Personal (Gemini 2.5 Flash)
+- Agent AI Estimator Macro (Gemini 2.5 Flash)
+- Grafic evolutie greutate
+- Urmarire hidratare
+- Sistem badges motivationale
 
 ## Cum rulezi local
-1. Instalează Ollama: https://ollama.com/download
-2. Descarcă modelul: `ollama pull llama3`
-3. Pornește Ollama: `OLLAMA_ORIGINS=* ollama serve`
-4. Clonează repo-ul: `git clone https://github.com/raduav1504/SmartSpotter-AI`
-5. Instalează dependențele: `bun install`
-6. Pornește aplicația: `bun run dev`
-7. Mergi la: http://localhost:8080
+
+1. Cloneaza repo-ul: `git clone https://github.com/raduav1504/SmartSpotter-AI`
+2. Instaleaza dependentele: `bun install`
+3. Copiaza `.env.example` in `.env` si completeaza valorile:
+   - `VITE_SUPABASE_URL` si `VITE_SUPABASE_PUBLISHABLE_KEY` din Supabase Dashboard
+   - `VITE_GEMINI_API_KEY` din https://aistudio.google.com/apikey (gratuit)
+4. Porneste aplicatia: `bun run dev`
+5. Mergi la: http://localhost:8080
 
 ## Tehnologii folosite
+
 - React + TanStack Router
-- Supabase (autentificare + bază de date)
-- Ollama + Llama3 (agenți AI locali)
+- Supabase (autentificare + baza de date)
+- Google Gemini 2.5 Flash (agenti AI cloud)
 - Tailwind CSS + shadcn/ui
 
 ## Linkuri
+
 - Backlog: [GitHub Projects](https://github.com/users/raduav1504/projects/1)
 - User Stories: [docs/user-stories.md](docs/user-stories.md)
-- Arhitectură: [docs/architecture.md](docs/architecture.md)
+- Arhitectura: [docs/architecture.md](docs/architecture.md)
 - Raport AI: [AI_REPORT.md](AI_REPORT.md)
+- Demo video: [YouTube](_adauga_link_dupa_inregistrare_)
