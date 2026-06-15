@@ -7,12 +7,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Progress } from "@/components/ui/progress";
 import { LineChart, Line, XAxis, YAxis, ResponsiveContainer, Tooltip, CartesianGrid } from "recharts";
-import { Droplet, Plus } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
-import { checkHydrationBadge, checkWeightBadge } from "@/lib/badges";
+import { checkWeightBadge } from "@/lib/badges";
 
 export const Route = createFileRoute("/_authenticated/progress")({
   head: () => ({ meta: [{ title: "Progres – SmartSpotter AI" }] }),
@@ -42,20 +40,9 @@ function ProgressPage() {
     },
   });
 
-  const { data: water } = useQuery({
-    enabled: !!user,
-    queryKey: ["water", user?.id, today],
-    queryFn: async () => {
-      const { data } = await supabase
-        .from("water_intake").select("*")
-        .eq("user_id", user!.id).eq("day", today).maybeSingle();
-      return data;
-    },
-  });
-
   const addWeight = async () => {
     const w = parseFloat(newWeight);
-    if (!user || !w || w < 30 || w > 300) return toast.error("Greutate invalidă");
+    if (!user || !w || w < 30 || w > 300) return toast.error("Greutate invalida");
     await supabase.from("weight_logs").upsert(
       { user_id: user.id, logged_at: today, weight_kg: w },
       { onConflict: "user_id,logged_at" },
@@ -64,24 +51,9 @@ function ProgressPage() {
     setNewWeight("");
     qc.invalidateQueries({ queryKey: ["weights"] });
     qc.invalidateQueries({ queryKey: ["profile"] });
-    toast.success("Greutate înregistrată");
+    toast.success("Greutate inregistrata");
     if (profile?.goal) await checkWeightBadge(user.id, profile.goal);
   };
-
-  const addWater = async (ml: number) => {
-    if (!user) return;
-    const current = water?.amount_ml || 0;
-    await supabase.from("water_intake").upsert(
-      { user_id: user.id, day: today, amount_ml: current + ml },
-      { onConflict: "user_id,day" },
-    );
-    qc.invalidateQueries({ queryKey: ["water"] });
-    qc.invalidateQueries({ queryKey: ["dashboard"] });
-    if (profile?.daily_water_ml_target) await checkHydrationBadge(user.id, profile.daily_water_ml_target);
-  };
-
-  const waterMl = water?.amount_ml || 0;
-  const waterTarget = profile?.daily_water_ml_target || 2500;
 
   const chartData = (weights || []).map((w) => ({
     date: format(new Date(w.logged_at), "dd/MM"),
@@ -92,23 +64,8 @@ function ProgressPage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold">Progres</h1>
-        <p className="text-muted-foreground">Greutate și hidratare.</p>
+        <p className="text-muted-foreground">Urmareste evolutia greutatii tale.</p>
       </div>
-
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2"><Droplet className="h-5 w-5 text-primary" /> Hidratare azi</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          <div className="text-2xl font-bold">{waterMl} / {waterTarget} ml</div>
-          <Progress value={Math.min(100, (waterMl / waterTarget) * 100)} />
-          <div className="flex flex-wrap gap-2">
-            <Button size="sm" variant="outline" onClick={() => addWater(250)}><Plus className="mr-1 h-3 w-3" /> 250ml</Button>
-            <Button size="sm" variant="outline" onClick={() => addWater(500)}><Plus className="mr-1 h-3 w-3" /> 500ml</Button>
-            <Button size="sm" variant="outline" onClick={() => addWater(750)}><Plus className="mr-1 h-3 w-3" /> 750ml</Button>
-          </div>
-        </CardContent>
-      </Card>
 
       <Card>
         <CardHeader>
@@ -117,10 +74,10 @@ function ProgressPage() {
         <CardContent className="space-y-4">
           <div className="flex items-end gap-2">
             <div className="flex-1">
-              <Label>Greutate curentă (kg)</Label>
+              <Label>Greutate curenta (kg)</Label>
               <Input type="number" step="0.1" value={newWeight} onChange={(e) => setNewWeight(e.target.value)} />
             </div>
-            <Button onClick={addWeight}>Înregistrează</Button>
+            <Button onClick={addWeight}>Inregistreaza</Button>
           </div>
 
           {chartData.length > 0 ? (
@@ -142,7 +99,7 @@ function ProgressPage() {
               </ResponsiveContainer>
             </div>
           ) : (
-            <p className="text-sm text-muted-foreground">Înregistrează greutatea ca să vezi graficul.</p>
+            <p className="text-sm text-muted-foreground">Inregistreaza greutatea ca sa vezi graficul.</p>
           )}
         </CardContent>
       </Card>
