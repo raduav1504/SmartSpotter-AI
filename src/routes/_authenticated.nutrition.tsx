@@ -70,11 +70,24 @@ function NutritionPage() {
 
   const estimate = useMutation({
     mutationFn: async (raw: string) => {
-      const prompt = `Esti un nutritionist expert. Calculeaza matematic valorile nutritionale pentru alimentele descrise.
-      Raspunde STRICT si DOAR cu un obiect JSON valid.
-      Foloseste EXACT aceste 4 chei: "calories", "protein_g", "carbs_g", "fat_g".
-      Valorile trebuie sa fie numere intregi sau zecimale.
-      Aliment: ${raw}`;
+      const prompt = `Esti un nutritionist expert. Analizeaza alimentele descrise si estimeaza valorile nutritionale.
+
+REGULI OBLIGATORII:
+1. Estimeaza gramele de proteine, carbohidrati si grasimi pentru fiecare aliment in parte
+2. Calculeaza caloriile STRICT dupa formula Atwater: calories = (protein_g * 4) + (carbs_g * 4) + (fat_g * 9)
+3. Nu inventa valori — foloseste baze de date nutritionale standard
+4. Portiile implicite sunt cele romanesti (ex: o saorma mica = ~300g, o felie paine = ~30g)
+5. Raspunde DOAR cu JSON valid, fara text in afara
+
+Format raspuns:
+{
+  "protein_g": numar,
+  "carbs_g": numar,
+  "fat_g": numar,
+  "calories": numar calculat dupa Atwater
+}
+
+Alimente: ${raw}`;
 
       const result = JSON.parse(await callGemini(prompt));
       return {
@@ -140,7 +153,7 @@ function NutritionPage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold">Nutritie</h1>
-        <p className="text-muted-foreground">Scrie ce ai mancat — Gemini AI calculeaza caloriile si macronutrientii.</p>
+        <p className="text-muted-foreground">Scrie ce ai mancat — Gemini calculeaza caloriile dupa formula Atwater.</p>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2">

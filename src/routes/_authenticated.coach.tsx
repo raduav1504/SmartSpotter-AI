@@ -61,19 +61,34 @@ function CoachPage() {
 
   const generate = useMutation({
     mutationFn: async (ctx: string) => {
-      const prompt = `Esti un antrenor personal expert. Genereaza un plan de antrenament bazat pe cererea utilizatorului.
-      Raspunde STRICT si DOAR cu un obiect JSON valid, care sa respecte EXACT urmatoarea structura:
-      {
-        "title": "Nume scurt antrenament",
-        "duration_min": 45,
-        "notes": "Un scurt sfat general sau de incalzire",
-        "exercises": [
-          { "name": "Nume exercitiu", "sets": 3, "reps": 12, "weight_kg": 20, "rest_sec": 60, "tip": "sfat executie" }
-        ]
-      }
-      Nu scrie niciun alt text in afara de JSON.
-      Profilul utilizatorului: varsta ${profile?.age || "?"}, greutate ${profile?.weight_kg || "?"}kg, obiectiv: ${profile?.goal || "?"}.
-      Cererea utilizatorului: ${ctx}`;
+      const prompt = `Esti un antrenor personal expert. Genereaza un plan de antrenament PERSONALIZAT bazat pe profilul si cererea utilizatorului.
+
+PROFILUL UTILIZATORULUI:
+- Varsta: ${profile?.age} ani
+- Greutate: ${profile?.weight_kg}kg
+- Inaltime: ${profile?.height_cm}cm
+- Sex: ${profile?.sex}
+- Obiectiv: ${profile?.goal === 'lose' ? 'slabire' : profile?.goal === 'gain' ? 'masa musculara' : 'mentinere'}
+- Nivel activitate: ${profile?.activity_level}
+
+REGULI OBLIGATORII:
+1. Adapteaza greutatile sugerate la greutatea corporala a utilizatorului (ex: nu sugera 100kg la cineva de 60kg)
+2. Daca obiectivul e slabire: mai multe repetari, pauze scurte, exercitii compuse
+3. Daca obiectivul e masa musculara: greutati mai mari, pauze mai lungi, volum crescut
+4. Daca utilizatorul mentioneaza o leziune sau limitare, EVITA complet exercitiile care implica zona respectiva
+5. Raspunde STRICT si DOAR cu JSON valid
+
+Format raspuns:
+{
+  "title": "Nume scurt antrenament",
+  "duration_min": numar,
+  "notes": "sfat personalizat bazat pe obiectivul utilizatorului",
+  "exercises": [
+    { "name": "Nume exercitiu", "sets": numar, "reps": numar, "weight_kg": numar, "rest_sec": numar, "tip": "sfat executie" }
+  ]
+}
+
+Cererea utilizatorului: ${ctx}`;
 
       const raw = await callGemini(prompt);
       return JSON.parse(raw) as Plan;
@@ -103,7 +118,7 @@ function CoachPage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold">Antrenor AI</h1>
-        <p className="text-muted-foreground">Descrie ce vrei sa antrenezi, iar Gemini iti genereaza un plan personalizat.</p>
+        <p className="text-muted-foreground">Descrie ce vrei sa antrenezi, iar Gemini iti genereaza un plan personalizat pe profilul tau.</p>
       </div>
 
       <Card>
